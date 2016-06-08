@@ -259,35 +259,44 @@ void ac_behavior( SRAI ){
 }
 
 void ac_behavior( SCALL ){
-
+	dbg_printf("SCALL");
+	printf("System Call\n");
 }
 
 void ac_behavior( SBREAK ){
-
+	dbg_printf("SBREAK");
+	printf("Breakpoint\n");
 }
 
 void ac_behavior( RDCYCLE ){
-
+	dbg_printf("RDCYCLE r%d", rd);
+	RB[rd] = ac_pc;
+	dbg_printf("Result = %#x\n", RB[rd]);
 }
 
 void ac_behavior( RDCYCLEH ){
-
+	dbg_printf("RDCYCLEH r%d", rd);
+	//still need to work on this one
 }
 
 void ac_behavior( RDTIME ){
-
+	dbg_printf("RDTIME r%d", rd);
+	//still need to work on this one
 }
 
 void ac_behavior( RDTIMEH ){
-
+	dbg_printf("RDTIMEH r%d", rd);
+	//still need to work on this one
 } 
 
 void ac_behavior( RDINSTRET ){
-
+	dbg_printf("RDINSTRET r%d", rd);
+	//Same as RDCYCLE
 }
 
 void ac_behavior( RDINSTRETH ){
-
+	dbg_printf("RDINSTRETH r%d", rd);
+	//Same as RDCYCLEH
 }
 
 void ac_behavior( SB ){
