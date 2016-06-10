@@ -2,11 +2,7 @@ AC_ARCH(riscv){
 	
 	ac_mem	DM:512M;
 	ac_regbank RB:32;
-	ac_reg npc;
 
-	//check for more registers!
-
-	ac_reg hi, lo;
 	ac_wordsize 32;
 
 	ARCH_CTOR(riscv){
