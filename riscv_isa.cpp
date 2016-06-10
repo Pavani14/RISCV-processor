@@ -34,8 +34,6 @@ void ac_behavior(begin)
 
   for (int regNum = 0; regNum < 32; regNum ++)
     RB[regNum] = 0;
-  hi = 0;
-  lo = 0;
 }
 
 // Behavior called after finishing simulation
@@ -157,13 +155,22 @@ void ac_behavior( LHU ){
 
 void ac_behavior( ADDI ){
 	dbg_printf("ADDI r%d, r%d, %d", rd, rs1, imm);
-	int sign_ext;
-	if((imm >> 11) == 1){
-		sign_ext = imm & 0xFFFFFFFF;
+	if((rd == $0) && (rs1 == $0) && (imm == 0))
+	{
+		ac_pc = ac_pc + 4;
+		dbg_printf("NOP executed!");
+	}
 	else
-		sign_ext = imm & 0x00000FFF;
-	RB[rd] = RB[rs1] + sign_ext;
-	dbg_printf("Result = %#x\n", RB[rd]);
+	{
+		int sign_ext;
+		if((imm >> 11) == 1){
+			sign_ext = imm & 0xFFFFFFFF;
+		else
+			sign_ext = imm & 0x00000FFF;
+		RB[rd] = RB[rs1] + sign_ext;
+		dbg_printf("Result = %#x\n", RB[rd]);
+	}
+	
 }
 
 void ac_behavior( SLTI ){
@@ -389,4 +396,81 @@ void ac_behavior( JAL ){
 	RB[rd] = ac_pc + 4;
 	ac_pc = (imm & 0xFFFFFFFF) + ac_pc; 
 	printf("--- Jump taken ---\n");
+}
+
+void ac_behavior( MUL ){
+	dbg_printf("MUL r%d, r%d, r%d", rd, rs1, rs2);
+	RB[rd] = RB[rs1] * RB[rs2];
+	dbg_printf("Result = %#x\n", RB[rd]);	
+}
+
+void ac_behavior( MULH ){
+	dbg_printf("MULH r%d, r%d, r%d", rd, rs1, rs2);
+	long int mult;
+	mult = RB[rs1] * RB[rs2];
+	mult = mult>>32;
+	RB[rd] = mult;
+	dbg_printf("Result = %#x\n", RB[rd]);
+}
+
+void ac_behavior( MULHSU ){
+	dbg_printf("MULHSU r%d, r%d, r%d", rd, rs1, rs2);
+	long int mult;
+	mult = RB[rs1] * (ac_Uword)(RB[rs2]);
+	mult = mult >>32;
+	RB[rd] = mult;
+	dbg_printf("Result = %#x\n", RB[rd]);	
+}
+
+void ac_behavior( MULHU ){
+	dbg_printf("MULHU r%d, r%d, r%d", rd, rs1, rs2);
+	long int mult;
+	mult = (ac_Uword)RB[rs1] * (ac_Uword)RB[rs2];
+	mult = mult >>32;
+	RB[rd] = mult;
+	dbg_printf("Result = %#x\n", RB[rd]);	
+}
+
+void ac_behavior( DIV ){
+	dbg_printf("DIV r%d, r%d, r%d", rd, rs1, rs2);
+	if(RB[rs2] == 0)
+		RB[rd]=-1;
+	else if((RB[rs1] == -2^(31)) && (RB[rs2] == -1))
+		RB[rd] = -2^(31);
+	else
+		RB[rd] = RB[rs1]/RB[rs2];
+	dbg_printf("Result = %#x\n", RB[rd]);
+}
+
+void ac_behavior( DIVU ){
+	dbg_printf("DIVU r%d, r%d, r%d", rd, rs1, rs2);
+	if(RB[rs2] == 0)
+		RB[rd]=-1;
+	else if((RB[rs1] == -2^(31)) && (RB[rs2] == -1))
+		dbg_printf("Wrong division exception!");
+	else
+		RB[rd] = (ac_Uword)RB[rs1]/(ac_Uword)RB[rs2];
+	dbg_printf("Result = %#x\n", (ac_Uword)RB[rd]);	
+}
+
+void ac_behavior( REM ){
+	dbg_printf("REM r%d, r%d, r%d", rd, rs1, rs2);
+	if(RB[rs2] == 0)
+		RB[rd]=RB[rs1];
+	else if((RB[rs1] == -2^(31)) && (RB[rs2] == -1))
+		RB[rd] = 0;
+	else
+		RB[rd] = RB[rs1]%RB[rs2];
+	dbg_printf("Result = %#x\n", RB[rd]);	
+}
+
+void ac_behavior( REMU ){
+	dbg_printf("REMU r%d, r%d, r%d", rd, rs1, rs2);
+	if(RB[rs2] == 0)
+		RB[rd]=RB[rs1];
+	else if((RB[rs1] == -2^(31)) && (RB[rs2] == -1))
+		dbg_printf("Wrong division exception!");
+	else
+		RB[rd] = (ac_Uword)RB[rs1]%(ac_Uword)RB[rs2];
+	dbg_printf("Result = %#x\n", (ac_Uword)RB[rd]);		
 }
