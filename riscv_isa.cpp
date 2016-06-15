@@ -173,6 +173,7 @@ void ac_behavior( ADDI ){
 	
 }
 
+
 void ac_behavior( SLTI ){
 	dbg_printf("SLTI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
@@ -244,6 +245,7 @@ void ac_behavior( JALR ){
 	RB[rd] = ac_pc+4;
 }
 
+/*
 void ac_behavior( SLLI ){
 	dbg_printf("SLLI r%d, r%d, %d", rd, rs1, imm);
 	RB[rd] = RB[rs1]<<shamt;
@@ -264,7 +266,7 @@ void ac_behavior( SRAI ){
 		RB[rd] = RB[rs1]>>shamt;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
-
+*/
 void ac_behavior( SCALL ){
 	dbg_printf("SCALL");
 	printf("System Call\n");
