@@ -9,8 +9,10 @@ To simulate the model perform the following steps:
 (assuming it to be acinstall)
 
     cd acinstall/processors  
-    cd riscv 
-    cd riscv-1.0 
+    cd riscv/riscv-1.0 
+    
+Now simulate the model:
+
     acsim riscv.ac
 
 
