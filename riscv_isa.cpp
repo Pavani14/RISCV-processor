@@ -10,7 +10,7 @@
 using namespace riscv_parms;
 
 static int processors_started = 0;
-#define DEFAULT_STACK_SIZE(256*1024); //check this parameter
+#define DEFAULT_STACK_SIZE (512*1024); //check this parameter
 
 //generic instruction behavior method
 void ac_behavior(instruction){
@@ -25,6 +25,7 @@ void ac_behavior(Type_S){}
 void ac_behavior(Type_SB){}
 void ac_behavior(Type_U){}
 void ac_behavior(Type_UJ){}
+void ac_behavior(Type_I_shamt){}
 
 // Behavior called before starting simulation
 void ac_behavior(begin)
@@ -95,7 +96,7 @@ void ac_behavior( SRL ){
 
 void ac_behavior( SRA ){
 	dbg_printf("SRA r%d, r%d, r%d", rd, rs1, rs2);
-	if((RB[rs1] >> 4) == 1){
+	if((RB[rs1] >> 4) == 1)
 		RB[rd] = (RB[rs1]>>RB[rs2]) | (0xFFFFFFFF<<RB[rs2]);
 	else
 		RB[rd] = RB[rs1]>>RB[rs2];
@@ -155,7 +156,7 @@ void ac_behavior( LHU ){
 
 void ac_behavior( ADDI ){
 	dbg_printf("ADDI r%d, r%d, %d", rd, rs1, imm);
-	if((rd == $0) && (rs1 == $0) && (imm == 0))
+	if((rd == 0) && (rs1 == 0) && (imm == 0))
 	{
 		ac_pc = ac_pc + 4;
 		dbg_printf("NOP executed!");
@@ -163,7 +164,7 @@ void ac_behavior( ADDI ){
 	else
 	{
 		int sign_ext;
-		if((imm >> 11) == 1){
+		if((imm >> 11) == 1)
 			sign_ext = imm & 0xFFFFFFFF;
 		else
 			sign_ext = imm & 0x00000FFF;
@@ -177,7 +178,7 @@ void ac_behavior( ADDI ){
 void ac_behavior( SLTI ){
 	dbg_printf("SLTI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
-	if((imm >> 11) == 1){
+	if((imm >> 11) == 1)
 		sign_ext = imm & 0xFFFFFFFF;
 	else
 		sign_ext = imm & 0x00000FFF;
@@ -192,7 +193,7 @@ void ac_behavior( SLTI ){
 void ac_behavior( SLTIU ){
 	dbg_printf("SLTIU r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
-	if((imm >> 11) == 1){
+	if((imm >> 11) == 1)
 		sign_ext = imm & 0xFFFFFFFF;
 	else
 		sign_ext = imm & 0x00000FFF;	
@@ -207,7 +208,7 @@ void ac_behavior( SLTIU ){
 void ac_behavior( XORI ){
 	dbg_printf("XORI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
-	if((imm >> 11) == 1){
+	if((imm >> 11) == 1)
 		sign_ext = imm & 0xFFFFFFFF;
 	else
 		sign_ext = imm & 0xFFFFF000;
@@ -218,7 +219,7 @@ void ac_behavior( XORI ){
 void ac_behavior( ORI ){
 	dbg_printf("ORI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
-	if((imm >> 11) == 1){
+	if((imm >> 11) == 1)
 		sign_ext = imm & 0xFFFFFFFF;
 	else
 		sign_ext = imm | 0xFFFFF000;
@@ -229,7 +230,7 @@ void ac_behavior( ORI ){
 void ac_behavior( ANDI ){
 	dbg_printf("ANDI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
-	if((imm >> 11) == 1){
+	if((imm >> 11) == 1)
 		sign_ext = imm & 0xFFFFFFFF;
 	else
 		sign_ext = imm & 0xFFFFF000;
@@ -245,28 +246,28 @@ void ac_behavior( JALR ){
 	RB[rd] = ac_pc+4;
 }
 
-/*
+
 void ac_behavior( SLLI ){
-	dbg_printf("SLLI r%d, r%d, %d", rd, rs1, imm);
+	dbg_printf("SLLI r%d, r%d, %d", rd, rs1, shamt);
 	RB[rd] = RB[rs1]<<shamt;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
 
 void ac_behavior( SRLI ){
-	dbg_printf("SRLI r%d, r%d, %d", rd, rs1, imm);
+	dbg_printf("SRLI r%d, r%d, %d", rd, rs1, shamt);
 	RB[rd] = RB[rs1]>>shamt;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
 
 void ac_behavior( SRAI ){
-	dbg_printf("SRAI r%d, r%d, %d", rd, rs1, imm);
-	if((imm >> 11) == 1){
+	dbg_printf("SRAI r%d, r%d, %d", rd, rs1, shamt);
+	if((imm >> 5) == 1){
 		RB[rd] = (RB[rs1]>>shamt) | (0xFFFFFFFF<<shamt);
 	else
 		RB[rd] = RB[rs1]>>shamt;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
-*/
+
 void ac_behavior( SCALL ){
 	dbg_printf("SCALL");
 	printf("System Call\n");
@@ -312,7 +313,7 @@ void ac_behavior( SB ){
 	unsigned char byte;
 	dbg_printf("SB r%d, r%d, %d", rd, rs1, imm);
 	byte = RB[rs2];
-	DATA_PORT->write_byte(RB[rs1] + ((imm1+imm2) & 0xFFFFFFFF), byte);_
+	DATA_PORT->write_byte(RB[rs1] + ((imm1+imm2) & 0xFFFFFFFF), byte);
 }
 
 void ac_behavior( SH ){
@@ -326,56 +327,62 @@ void ac_behavior( SW ){
 }
 
 void ac_behavior( BEQ ){
-	dbg_printf("BEQ r%d, r%d, %d", rs1, rs2, imm);
+	dbg_printf("BEQ r%d, r%d, %d", rs1, rs2, imm1+imm2);
 	if(RB[rs1] == RB[rs2])
 	{
-		ac_pc = ac_pc + imm;
-		printf("PC updated to %d\n", ac_pc);
+		ac_pc = ac_pc + (imm1+imm2);
+		//printf("PC updated to %d\n", ac_pc);
+		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BNE ){
-	dbg_printf("BNE r%d, r%d, %d", rs1, rs2, imm);
+	dbg_printf("BNE r%d, r%d, %d", rs1, rs2, imm1+imm2);
 	if(RB[rs1] != RB[rs2])
 	{
-		ac_pc = ac_pc + imm;
-		printf("PC updated to %d\n", ac_pc);
+		ac_pc = ac_pc + (imm1+imm2);
+		//printf("PC updated to %d\n", ac_pc);
+		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BLT ){
-	dbg_printf("BLT r%d, r%d, %d", rs1, rs2, imm);
+	dbg_printf("BLT r%d, r%d, %d", rs1, rs2, imm1+imm2);
 	if(RB[rs1] < RB[rs2])
 	{
-		ac_pc = ac_pc + imm;
-		printf("PC updated to %d\n", ac_pc);
+		ac_pc = ac_pc + (imm1+imm2);
+		//printf("PC updated to %d\n", ac_pc);
+		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BGE ){
-	dbg_printf("BGE r%d, r%d, %d", rs1, rs2, imm);
+	dbg_printf("BGE r%d, r%d, %d", rs1, rs2, imm1+imm2);
 	if((RB[rs1] > RB[rs2]) || (RB[rs1] == RB[rs2])) 
 	{
-		ac_pc = ac_pc + imm;
-		printf("PC updated to %d\n", ac_pc);
+		ac_pc = ac_pc + (imm1+imm2);
+		//printf("PC updated to %d\n", ac_pc);
+		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BLTU ){
-	dbg_printf("BLTU r%d, r%d, %d", rs1, rs2, imm);
+	dbg_printf("BLTU r%d, r%d, %d", rs1, rs2, imm1+imm2);
 	if((ac_Uword)RB[rs1] < (ac_Uword)RB[rs2])
 	{
-		ac_pc = ac_pc + imm;
-		printf("PC updated to %d\n", ac_pc);
+		ac_pc = ac_pc + (imm1+imm2);
+		//printf("PC updated to %d\n", ac_pc);
+		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BGEU ){
-	dbg_printf("BGEU r%d, r%d, %d", rs1, rs2, imm);
+	dbg_printf("BGEU r%d, r%d, %d", rs1, rs2, imm1+imm2);
 	if(((ac_Uword)RB[rs1] > (ac_Uword)RB[rs2]) || ((ac_Uword)RB[rs1] == (ac_Uword)RB[rs2])) 
 	{
-		ac_pc = ac_pc + imm;
-		printf("PC updated to %d\n", ac_pc);
+		ac_pc = ac_pc + (imm1+imm2);
+		//printf("PC updated to %d\n", ac_pc);
+		printf("PC updated\n");
 	}
 }
 
