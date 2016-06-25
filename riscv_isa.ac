@@ -9,10 +9,6 @@
 */
 
 AC_ISA(riscv){
-	ac_helper{
-		#include "riscv_isa_helper.H"
-	};
-
 	ac_format Type_R = "%funct7:7 %rs2:5 %rs1:5 %funct3:3 %rd:5 %op:7";
 	ac_format Type_I = "%imm:12 %rs1:5 %funct3:3 %rd:5 %op:7"; 
 	ac_format Type_S = "%imm1:7 %rs2:5 %rs1:5 %funct3:3 %imm2:5 %op:7";

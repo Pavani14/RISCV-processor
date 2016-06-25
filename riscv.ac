@@ -2,6 +2,7 @@ AC_ARCH(riscv){
 	
 	ac_mem	DM:512M;
 	ac_regbank RB:32;
+  ac_reg  id;
 
 	ac_wordsize 32;
 
