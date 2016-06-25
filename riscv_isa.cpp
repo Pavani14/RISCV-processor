@@ -165,9 +165,9 @@ void ac_behavior( ADDI ){
 	{
 		int sign_ext;
 		if((imm >> 11) == 1)
-			sign_ext = imm & 0xFFFFFFFF;
+			sign_ext = imm | 0xFFFFF000;
 		else
-			sign_ext = imm & 0x00000FFF;
+			sign_ext = imm;
 		RB[rd] = RB[rs1] + sign_ext;
 		dbg_printf("Result = %#x\n", RB[rd]);
 	}
@@ -179,9 +179,9 @@ void ac_behavior( SLTI ){
 	dbg_printf("SLTI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
 	if((imm >> 11) == 1)
-		sign_ext = imm & 0xFFFFFFFF;
+		sign_ext = imm | 0xFFFFF000;
 	else
-		sign_ext = imm & 0x00000FFF;
+		sign_ext = imm;
 	if(RB[rs1] < sign_ext)
 		RB[rd] = 1;
 	else
@@ -189,14 +189,14 @@ void ac_behavior( SLTI ){
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
 
-//REDO
+
 void ac_behavior( SLTIU ){
 	dbg_printf("SLTIU r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
 	if((imm >> 11) == 1)
-		sign_ext = imm & 0xFFFFFFFF;
+		sign_ext = imm | 0xFFFFF000;
 	else
-		sign_ext = imm & 0x00000FFF;	
+		sign_ext = imm;	
 	if( (ac_Uword)RB[rs1] < (ac_Uword)sign_ext)
 		RB[rd] = 1;
 	else
@@ -209,9 +209,9 @@ void ac_behavior( XORI ){
 	dbg_printf("XORI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
 	if((imm >> 11) == 1)
-		sign_ext = imm & 0xFFFFFFFF;
+		sign_ext = imm | 0xFFFFF000;
 	else
-		sign_ext = imm & 0xFFFFF000;
+		sign_ext = imm;
 	RB[rd] = RB[rs1] ^ sign_ext;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
@@ -220,9 +220,9 @@ void ac_behavior( ORI ){
 	dbg_printf("ORI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
 	if((imm >> 11) == 1)
-		sign_ext = imm & 0xFFFFFFFF;
-	else
 		sign_ext = imm | 0xFFFFF000;
+	else
+		sign_ext = imm;
 	RB[rd] = RB[rs1] + sign_ext;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
@@ -231,9 +231,9 @@ void ac_behavior( ANDI ){
 	dbg_printf("ANDI r%d, r%d, %d", rd, rs1, imm);
 	int sign_ext;
 	if((imm >> 11) == 1)
-		sign_ext = imm & 0xFFFFFFFF;
+		sign_ext = imm | 0xFFFFF000;
 	else
-		sign_ext = imm & 0xFFFFF000;
+		sign_ext = imm;
 	RB[rd] = RB[rs1] & sign_ext;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
@@ -311,76 +311,94 @@ void ac_behavior( RDINSTRETH ){
 
 void ac_behavior( SB ){
 	unsigned char byte;
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;
 	dbg_printf("SB r%d, r%d, %d", rd, rs1, imm);
 	byte = RB[rs2];
-	DATA_PORT->write_byte(RB[rs1] + ((imm1+imm2) & 0xFFFFFFFF), byte);
+	DATA_PORT->write_byte(RB[rs1] + (imm & 0xFFFFFFFF), byte);
 }
 
 void ac_behavior( SH ){
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;
 	dbg_printf("SH r%d, r%d, %d", rd, rs1, imm);
-	DATA_PORT->write_half(RB[rs1] + ((imm1+imm2) & 0xFFFFFFFF), RB[rs2]);
+	DATA_PORT->write_half(RB[rs1] + (imm & 0xFFFFFFFF), RB[rs2]);
 }
 
 void ac_behavior( SW ){
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;
 	dbg_printf("SW r%d, r%d, %d", rd, rs1, imm);
-	DATA_PORT->write(RB[rs1] + ((imm1+imm2) & 0xFFFFFFFF), RB[rs2]);
+	DATA_PORT->write(RB[rs1] + (imm & 0xFFFFFFFF), RB[rs2]);
 }
 
 void ac_behavior( BEQ ){
-	dbg_printf("BEQ r%d, r%d, %d", rs1, rs2, imm1+imm2);
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;
+	dbg_printf("BEQ r%d, r%d, %d", rs1, rs2, imm);
 	if(RB[rs1] == RB[rs2])
 	{
-		ac_pc = ac_pc + (imm1+imm2);
+		ac_pc = ac_pc + imm;
 		//printf("PC updated to %d\n", ac_pc);
 		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BNE ){
-	dbg_printf("BNE r%d, r%d, %d", rs1, rs2, imm1+imm2);
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;	
+	dbg_printf("BNE r%d, r%d, %d", rs1, rs2, imm);
 	if(RB[rs1] != RB[rs2])
 	{
-		ac_pc = ac_pc + (imm1+imm2);
+		ac_pc = ac_pc + imm;
 		//printf("PC updated to %d\n", ac_pc);
 		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BLT ){
-	dbg_printf("BLT r%d, r%d, %d", rs1, rs2, imm1+imm2);
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;	
+	dbg_printf("BLT r%d, r%d, %d", rs1, rs2, imm);
 	if(RB[rs1] < RB[rs2])
 	{
-		ac_pc = ac_pc + (imm1+imm2);
+		ac_pc = ac_pc + imm;
 		//printf("PC updated to %d\n", ac_pc);
 		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BGE ){
-	dbg_printf("BGE r%d, r%d, %d", rs1, rs2, imm1+imm2);
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;	
+	dbg_printf("BGE r%d, r%d, %d", rs1, rs2, imm);
 	if((RB[rs1] > RB[rs2]) || (RB[rs1] == RB[rs2])) 
 	{
-		ac_pc = ac_pc + (imm1+imm2);
+		ac_pc = ac_pc + imm;
 		//printf("PC updated to %d\n", ac_pc);
 		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BLTU ){
-	dbg_printf("BLTU r%d, r%d, %d", rs1, rs2, imm1+imm2);
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;	
+	dbg_printf("BLTU r%d, r%d, %d", rs1, rs2, imm);
 	if((ac_Uword)RB[rs1] < (ac_Uword)RB[rs2])
 	{
-		ac_pc = ac_pc + (imm1+imm2);
+		ac_pc = ac_pc + imm;
 		//printf("PC updated to %d\n", ac_pc);
 		printf("PC updated\n");
 	}
 }
 
 void ac_behavior( BGEU ){
-	dbg_printf("BGEU r%d, r%d, %d", rs1, rs2, imm1+imm2);
+	uint32_t imm;
+	imm = ( imm1 << 7) | imm2;	
+	dbg_printf("BGEU r%d, r%d, %d", rs1, rs2, imm);
 	if(((ac_Uword)RB[rs1] > (ac_Uword)RB[rs2]) || ((ac_Uword)RB[rs1] == (ac_Uword)RB[rs2])) 
 	{
-		ac_pc = ac_pc + (imm1+imm2);
+		ac_pc = ac_pc + imm;
 		//printf("PC updated to %d\n", ac_pc);
 		printf("PC updated\n");
 	}
