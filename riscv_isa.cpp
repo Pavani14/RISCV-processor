@@ -261,7 +261,7 @@ void ac_behavior( SRLI ){
 
 void ac_behavior( SRAI ){
 	dbg_printf("SRAI r%d, r%d, %d", rd, rs1, shamt);
-	if((imm >> 5) == 1){
+	if((imm >> 5) == 1)
 		RB[rd] = (RB[rs1]>>shamt) | (0xFFFFFFFF<<shamt);
 	else
 		RB[rd] = RB[rs1]>>shamt;
