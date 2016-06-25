@@ -315,21 +315,21 @@ void ac_behavior( SB ){
 	imm = ( imm1 << 7) | imm2;
 	dbg_printf("SB r%d, r%d, %d", rd, rs1, imm);
 	byte = RB[rs2];
-	DATA_PORT->write_byte(RB[rs1] + (imm & 0xFFFFFFFF), byte);
+	DATA_PORT->write_byte(RB[rs1] + (imm | 0xFFFFF000), byte);
 }
 
 void ac_behavior( SH ){
 	uint32_t imm;
 	imm = ( imm1 << 7) | imm2;
 	dbg_printf("SH r%d, r%d, %d", rd, rs1, imm);
-	DATA_PORT->write_half(RB[rs1] + (imm & 0xFFFFFFFF), RB[rs2]);
+	DATA_PORT->write_half(RB[rs1] + (imm | 0xFFFFF000), RB[rs2]);
 }
 
 void ac_behavior( SW ){
 	uint32_t imm;
 	imm = ( imm1 << 7) | imm2;
 	dbg_printf("SW r%d, r%d, %d", rd, rs1, imm);
-	DATA_PORT->write(RB[rs1] + (imm & 0xFFFFFFFF), RB[rs2]);
+	DATA_PORT->write(RB[rs1] + (imm | 0xFFFFF000), RB[rs2]);
 }
 
 void ac_behavior( BEQ ){
