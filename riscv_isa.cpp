@@ -2,7 +2,12 @@
 #include "riscv_isa_init.cpp"
 #include "riscv_bhv_macros.H"
 
+//For debug Information
+#define DEBUG_MODEL
 #include "ac_debug_model.H"
+
+//#  define dbg_printf(args...) fprintf (stderr, "DBG: " args)
+//#define dbg_printf printf();
 
 #define Ra 1 
 #define Sp 14
@@ -31,7 +36,7 @@ void ac_behavior(Type_I_shamt){}
 void ac_behavior(begin)
 {
   dbg_printf("@@@ begin behavior @@@\n");
-  ac_pc = ac_pc + 4;
+  //ac_pc = ac_pc + 4;
 
   for (int regNum = 0; regNum < 32; regNum ++)
     RB[regNum] = 0;
@@ -119,7 +124,7 @@ void ac_behavior( AND ){
 void ac_behavior( LB ){
 	char byte;
 	dbg_printf("LB r%d, r%d, %d", rd, rs1, imm);
-	byte = DATA_PORT->read_byte(RB[rs1] + (imm & 0xFFFFFFFF));
+	byte = DATA_PORT->read_byte(RB[rs1] + (imm | 0xFFFFF000));
 	RB[rd] = (ac_Sword)byte;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
@@ -127,21 +132,21 @@ void ac_behavior( LB ){
 void ac_behavior( LH ){
 	short int half;
 	dbg_printf("LH r%d, r%d, %d", rd, rs1, imm);
-	half = DATA_PORT->read_half(RB[rs1] + (imm & 0xFFFFFFFF));
+	half = DATA_PORT->read_half(RB[rs1] + (imm | 0xFFFFF000));
 	RB[rd] = (ac_Sword)half;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
 
 void ac_behavior( LW ){
 	dbg_printf("LW r%d, r%d, %d", rd, rs1, imm);
-	RB[rd] = DATA_PORT->read(RB[rs1] + (imm & 0xFFFFFFFF));
+	RB[rd] = DATA_PORT->read(RB[rs1] + (imm | 0xFFFFF000));
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
 
 void ac_behavior( LBU ){
 	dbg_printf("LBU r%d, r%d, %d", rd, rs1, imm);
 	unsigned char byte;
-	byte = DATA_PORT->read_byte(RB[rs1] + (imm & 0xFFFFFFFF));
+	byte = DATA_PORT->read_byte(RB[rs1] + (imm | 0xFFFFF000));
 	RB[rd] = (ac_Uword)byte;
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
@@ -149,7 +154,7 @@ void ac_behavior( LBU ){
 void ac_behavior( LHU ){
 	unsigned short int half;
 	dbg_printf("LHU r%d, r%d, %d", rd, rs1, imm);
-	half = DATA_PORT->read_half(RB[rs1] + (imm & 0xFFFFFFFF));
+	half = DATA_PORT->read_half(RB[rs1] + (imm | 0xFFFFF000));
 	RB[rd] = (ac_Uword)half;
 	dbg_printf("Result = %#x\n", RB[rd]);	
 }
@@ -313,7 +318,7 @@ void ac_behavior( SB ){
 	unsigned char byte;
 	uint32_t imm;
 	imm = ( imm1 << 7) | imm2;
-	dbg_printf("SB r%d, r%d, %d", rd, rs1, imm);
+	dbg_printf("SB r%d, r%d, %d", rs1, rs2, imm);
 	byte = RB[rs2];
 	DATA_PORT->write_byte(RB[rs1] + (imm | 0xFFFFF000), byte);
 }
@@ -321,14 +326,14 @@ void ac_behavior( SB ){
 void ac_behavior( SH ){
 	uint32_t imm;
 	imm = ( imm1 << 7) | imm2;
-	dbg_printf("SH r%d, r%d, %d", rd, rs1, imm);
+	dbg_printf("SH r%d, r%d, %d", rs1, rs2, imm);
 	DATA_PORT->write_half(RB[rs1] + (imm | 0xFFFFF000), RB[rs2]);
 }
 
 void ac_behavior( SW ){
 	uint32_t imm;
 	imm = ( imm1 << 7) | imm2;
-	dbg_printf("SW r%d, r%d, %d", rd, rs1, imm);
+	dbg_printf("SW r%d, r%d, %d", rs1, rs2, imm);
 	DATA_PORT->write(RB[rs1] + (imm | 0xFFFFF000), RB[rs2]);
 }
 
@@ -405,7 +410,7 @@ void ac_behavior( BGEU ){
 }
 
 void ac_behavior( LUI ){
-	dbg_printf("LUI r%d, %d". rd, imm);
+	dbg_printf("LUI r%d, %d", rd, imm);
 	RB[rd] = imm<<12; 
 	dbg_printf("Result = %#x\n", RB[rd]);
 }
